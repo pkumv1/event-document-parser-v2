@@ -2,31 +2,51 @@ import { NextResponse } from 'next/server'
 import mammoth from 'mammoth'
 import { Groq } from 'groq-sdk'
 
-// Simplified PDF text extraction - fallback for deployment
+// Improved PDF text extraction - still basic but better
 async function extractPDFText(buffer) {
   try {
-    // For now, return a message indicating PDF support is limited
-    // This ensures deployment works while we fix the PDF library issues
-    console.warn('PDF parsing using basic extraction - full support coming soon')
+    console.log('Attempting PDF extraction, buffer size:', buffer.length)
     
-    // Basic PDF text extraction by converting buffer to string
-    // This won't extract formatted text but will get the deployment working
+    // Convert buffer to string and try to extract readable content
     const text = buffer.toString('utf8')
     
-    // Extract readable text portions (basic approach)
-    const readableText = text
-      .replace(/[^\x20-\x7E\n]/g, ' ') // Keep only printable ASCII
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .trim()
+    // Look for common PDF text patterns and extract them
+    const lines = []
+    const chunks = text.split(/\n|\r/)
     
-    if (readableText.length < 100) {
-      return 'PDF content extraction is currently limited. Please try uploading a Word document (.docx) instead, or paste the text content directly.'
+    for (const chunk of chunks) {
+      // Extract printable text
+      const cleaned = chunk
+        .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+      
+      if (cleaned.length > 3) {
+        lines.push(cleaned)
+      }
     }
     
-    return readableText
+    const extractedText = lines.join('\n')
+    console.log('Extracted text length:', extractedText.length)
+    console.log('First 200 chars:', extractedText.substring(0, 200))
+    
+    if (extractedText.length < 100) {
+      // If extraction failed, provide a manual entry option
+      return `PDF extraction returned limited content. The PDF parsing is currently basic.
+      
+Please use one of these options:
+1. Convert your PDF to a Word document (.docx) and upload that instead
+2. Copy and paste the text content manually
+3. Use a PDF-to-text converter online first
+
+Partial extraction (${extractedText.length} characters):
+${extractedText}`
+    }
+    
+    return extractedText
   } catch (error) {
     console.error('Error extracting PDF text:', error)
-    return 'Unable to extract text from this PDF. Please try a Word document (.docx) instead.'
+    return 'Unable to extract text from this PDF. Please try converting to Word (.docx) format or paste the text manually.'
   }
 }
 
@@ -164,7 +184,7 @@ function fixJsonStructure(jsonText) {
   jsonText = jsonText.replace(/(\w+)\s*:\s*'([^']*)'/g, '$1: "$2"')
   
   // Fix missing commas between properties
-  jsonText = jsonText.replace(/(:\s*(?:"[^"]*"|\d+\.?\d*|true|false|null))\s+("[\w_]+"\s*:)/g, '$1, $2')
+  jsonText = jsonText.replace(/(:\s*(?:"[^"]*"|\d+\.?\d*|true|false|null))\s+("[\\w_]+"\s*:)/g, '$1, $2')
   
   // Fix missing commas between array elements
   jsonText = jsonText.replace(/(\})\s+(\{)/g, '$1, $2')
@@ -447,6 +467,9 @@ export async function POST(request) {
       const buffer = Buffer.from(await file.arrayBuffer())
       let text = ''
       
+      console.log('File type:', file.type)
+      console.log('File size:', file.size)
+      
       if (file.type === 'application/pdf') {
         text = await extractPDFText(buffer)
       } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
@@ -464,6 +487,8 @@ export async function POST(request) {
       if (!text || !apiKey) {
         return NextResponse.json({ error: 'Missing text or API key' }, { status: 400 })
       }
+      
+      console.log('Parsing text of length:', text.length)
       
       const groq = new Groq({ apiKey })
       
@@ -483,10 +508,13 @@ export async function POST(request) {
       })
       
       const responseText = response.choices[0].message.content.trim()
+      console.log('LLM response length:', responseText.length)
       
       // Parse and calculate totals
       let parsedData = parseWithFallback(responseText)
       parsedData = calculateTotals(parsedData)
+      
+      console.log('Parsed data keys:', Object.keys(parsedData))
       
       return NextResponse.json(parsedData)
     }
@@ -495,7 +523,15 @@ export async function POST(request) {
     return NextResponse.json({ 
       error: 'Internal server error',
       parsing_error: true,
-      error_message: error.message
+      error_message: error.message,
+      event_info: {},
+      meeting_rooms: [],
+      sleeping_rooms: [],
+      food_beverage: [],
+      audio_visual: [],
+      financial_terms: {},
+      vat_details: {},
+      totals: {}
     }, { status: 500 })
   }
 }
