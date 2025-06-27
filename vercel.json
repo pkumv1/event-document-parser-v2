@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/parse/route.js": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "GROQ_API_KEY": "@groq_api_key"
+  }
+}
