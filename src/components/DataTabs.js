@@ -175,32 +175,32 @@ export default function DataTabs({ data }) {
 
       case 5: // Financial Summary
         const financial = data.financial_terms || {}
-        const totals = data.totals || {}
+        const financialTotals = data.totals || {}
         return (
           <div className="custom-card">
             <h4 style={{ marginBottom: '1.5rem' }}>Financial Breakdown</h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
               <div>
                 <h5 style={{ marginBottom: '1rem', color: 'var(--primary-dark)' }}>Event Components</h5>
-                <p><strong>Meeting Rooms:</strong> {formatCurrency(totals.meeting_room_rental_total)}</p>
-                <p><strong>Food & Beverage:</strong> {formatCurrency(totals.food_beverage_total)}</p>
-                <p><strong>Audio-Visual:</strong> {formatCurrency(totals.audio_visual_total)}</p>
-                <p><strong>Accommodations:</strong> {formatCurrency(totals.sleeping_room_total)}</p>
+                <p><strong>Meeting Rooms:</strong> {formatCurrency(financialTotals.meeting_room_rental_total)}</p>
+                <p><strong>Food & Beverage:</strong> {formatCurrency(financialTotals.food_beverage_total)}</p>
+                <p><strong>Audio-Visual:</strong> {formatCurrency(financialTotals.audio_visual_total)}</p>
+                <p><strong>Accommodations:</strong> {formatCurrency(financialTotals.sleeping_room_total)}</p>
               </div>
               <div>
                 <h5 style={{ marginBottom: '1rem', color: 'var(--primary-dark)' }}>Charges & Taxes</h5>
                 {financial.service_charge_rate > 0 && (
-                  <p><strong>Service Charge ({(financial.service_charge_rate * 100).toFixed(1)}%):</strong> {formatCurrency(totals.service_charge)}</p>
+                  <p><strong>Service Charge ({(financial.service_charge_rate * 100).toFixed(1)}%):</strong> {formatCurrency(financialTotals.service_charge)}</p>
                 )}
                 {financial.tax_rate > 0 && (
-                  <p><strong>Tax ({(financial.tax_rate * 100).toFixed(2)}%):</strong> {formatCurrency(totals.tax)}</p>
+                  <p><strong>Tax ({(financial.tax_rate * 100).toFixed(2)}%):</strong> {formatCurrency(financialTotals.tax)}</p>
                 )}
                 {financial.vat_rate > 0 && (
-                  <p><strong>VAT ({(financial.vat_rate * 100).toFixed(2)}%):</strong> {formatCurrency(totals.vat)}</p>
+                  <p><strong>VAT ({(financial.vat_rate * 100).toFixed(2)}%):</strong> {formatCurrency(financialTotals.vat)}</p>
                 )}
                 <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '2px solid var(--primary-light)' }}>
                   <p style={{ fontSize: '1.25rem', color: 'var(--primary-dark)' }}>
-                    <strong>Grand Total: {formatCurrency(totals.grand_total)}</strong>
+                    <strong>Grand Total: {formatCurrency(financialTotals.grand_total)}</strong>
                   </p>
                 </div>
               </div>
