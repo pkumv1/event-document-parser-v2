@@ -1,15 +1,7 @@
 import { NextResponse } from 'next/server'
-import formidable from 'formidable'
-import fs from 'fs/promises'
 import pdfParse from 'pdf-parse'
 import mammoth from 'mammoth'
 import { Groq } from 'groq-sdk'
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
 
 // Helper function to extract text from PDF
 async function extractPDFText(buffer) {
