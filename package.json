@@ -1,6 +1,6 @@
 {
   "name": "event-document-parser",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Event Document Parser - Extract structured data from event PDFs and Word documents",
   "private": true,
   "scripts": {
