@@ -2,13 +2,26 @@ import { NextResponse } from 'next/server'
 import mammoth from 'mammoth'
 import { Groq } from 'groq-sdk'
 
-// Helper function to extract text from PDF
+// Helper function to extract text from PDF using pdfjs-dist
 async function extractPDFText(buffer) {
   try {
-    // Dynamic import to avoid build-time issues
-    const pdfParse = (await import('pdf-parse')).default
-    const data = await pdfParse(buffer)
-    return data.text
+    // Dynamic import to avoid build issues
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.js')
+    const { getDocument } = pdfjsLib
+    
+    // Load the PDF document
+    const pdf = await getDocument({ data: buffer }).promise
+    let fullText = ''
+    
+    // Extract text from each page
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i)
+      const textContent = await page.getTextContent()
+      const pageText = textContent.items.map(item => item.str).join(' ')
+      fullText += pageText + '\n'
+    }
+    
+    return fullText
   } catch (error) {
     console.error('Error extracting PDF text:', error)
     throw new Error('Failed to extract PDF text')
