@@ -66,12 +66,15 @@ export default function Home() {
       }
 
       const data = await response.json()
+      console.log('Extracted text length:', data.text?.length || 0)
+      console.log('First 500 chars:', data.text?.substring(0, 500))
+      
       setExtractedText(data.text)
       toast.success('Text extracted successfully!')
       return data.text
     } catch (error) {
       toast.error('Failed to extract text from document')
-      console.error(error)
+      console.error('Text extraction error:', error)
     } finally {
       setIsLoading(false)
     }
@@ -97,6 +100,8 @@ export default function Home() {
         throw new Error('No text to analyze')
       }
 
+      console.log('Sending text to analyze, length:', textToAnalyze.length)
+
       // Parse the document
       const response = await fetch('/api/parse', {
         method: 'POST',
@@ -110,13 +115,17 @@ export default function Home() {
       })
 
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Parse API error:', errorText)
         throw new Error('Failed to parse document')
       }
 
       const data = await response.json()
+      console.log('Parsed data received:', data)
       
       if (data.parsing_error) {
         toast.error('Parsing error: ' + data.error_message)
+        console.error('Parsing error details:', data)
       } else {
         setParsingStats(prev => ({ ...prev, successes: prev.successes + 1 }))
         toast.success('Document analyzed successfully!')
@@ -124,8 +133,8 @@ export default function Home() {
       
       setParsedData(data)
     } catch (error) {
-      toast.error('Failed to analyze document')
-      console.error(error)
+      toast.error('Failed to analyze document: ' + error.message)
+      console.error('Analysis error:', error)
     } finally {
       setIsLoading(false)
     }
@@ -181,6 +190,14 @@ export default function Home() {
                   onAnalyze={analyzeDocument}
                   isLoading={isLoading}
                 />
+                {extractedText && (
+                  <div style={{ marginTop: '1rem', padding: '1rem', background: '#f5f5f5', borderRadius: '8px' }}>
+                    <h4>Extracted Text Preview:</h4>
+                    <p style={{ fontSize: '0.875rem', maxHeight: '200px', overflow: 'auto' }}>
+                      {extractedText.substring(0, 500)}...
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
