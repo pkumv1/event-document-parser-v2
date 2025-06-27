@@ -1,4 +1,7 @@
 {
+  "buildCommand": "rm -rf node_modules package-lock.json .next && npm install && npm run build",
+  "installCommand": "npm install --force",
+  "framework": "nextjs",
   "functions": {
     "src/app/api/parse/route.js": {
       "maxDuration": 30
