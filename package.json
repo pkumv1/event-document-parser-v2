@@ -15,7 +15,6 @@
     "react-dom": "^18.2.0",
     "axios": "^1.6.5",
     "formidable": "^3.5.1",
-    "pdfjs-dist": "^3.11.174",
     "mammoth": "^1.6.0",
     "groq-sdk": "^0.3.1",
     "react-dropzone": "^14.2.3",
