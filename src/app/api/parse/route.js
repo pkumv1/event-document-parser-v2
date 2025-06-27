@@ -1,52 +1,61 @@
 import { NextResponse } from 'next/server'
 import mammoth from 'mammoth'
 import { Groq } from 'groq-sdk'
+import pdf from 'pdf-parse'
 
-// Improved PDF text extraction - still basic but better
+// Helper function to extract text from PDF using pdf-parse
 async function extractPDFText(buffer) {
   try {
-    console.log('Attempting PDF extraction, buffer size:', buffer.length)
+    console.log('Attempting PDF extraction with pdf-parse, buffer size:', buffer.length)
     
-    // Convert buffer to string and try to extract readable content
-    const text = buffer.toString('utf8')
+    const data = await pdf(buffer)
+    console.log('PDF info:', {
+      pages: data.numpages,
+      info: data.info,
+      textLength: data.text.length
+    })
     
-    // Look for common PDF text patterns and extract them
-    const lines = []
-    const chunks = text.split(/\n|\r/)
-    
-    for (const chunk of chunks) {
-      // Extract printable text
-      const cleaned = chunk
-        .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
+    if (data.text && data.text.length > 100) {
+      return data.text
+    } else {
+      return `PDF extraction returned limited content (${data.text?.length || 0} characters).
       
-      if (cleaned.length > 3) {
-        lines.push(cleaned)
-      }
-    }
-    
-    const extractedText = lines.join('\n')
-    console.log('Extracted text length:', extractedText.length)
-    console.log('First 200 chars:', extractedText.substring(0, 200))
-    
-    if (extractedText.length < 100) {
-      // If extraction failed, provide a manual entry option
-      return `PDF extraction returned limited content. The PDF parsing is currently basic.
-      
-Please use one of these options:
-1. Convert your PDF to a Word document (.docx) and upload that instead
-2. Copy and paste the text content manually
-3. Use a PDF-to-text converter online first
+Please try:
+1. Converting your PDF to a Word document (.docx) and uploading that instead
+2. Copying and pasting the text content manually
+3. Using a different PDF file
 
-Partial extraction (${extractedText.length} characters):
-${extractedText}`
+Extracted text:
+${data.text || 'No text found'}`
     }
-    
-    return extractedText
   } catch (error) {
     console.error('Error extracting PDF text:', error)
-    return 'Unable to extract text from this PDF. Please try converting to Word (.docx) format or paste the text manually.'
+    
+    // Fallback to basic extraction if pdf-parse fails
+    try {
+      const text = buffer.toString('utf8')
+      const lines = []
+      const chunks = text.split(/\n|\r/)
+      
+      for (const chunk of chunks) {
+        const cleaned = chunk
+          .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+        
+        if (cleaned.length > 3) {
+          lines.push(cleaned)
+        }
+      }
+      
+      const extractedText = lines.join('\n')
+      return `PDF parsing encountered an error. Partial extraction (${extractedText.length} characters):
+${extractedText.substring(0, 1000)}...
+
+Please try converting to Word (.docx) format for better results.`
+    } catch (fallbackError) {
+      return 'Unable to extract text from this PDF. Please try converting to Word (.docx) format or paste the text manually.'
+    }
   }
 }
 
@@ -509,12 +518,16 @@ export async function POST(request) {
       
       const responseText = response.choices[0].message.content.trim()
       console.log('LLM response length:', responseText.length)
+      console.log('First 200 chars of LLM response:', responseText.substring(0, 200))
       
       // Parse and calculate totals
       let parsedData = parseWithFallback(responseText)
       parsedData = calculateTotals(parsedData)
       
       console.log('Parsed data keys:', Object.keys(parsedData))
+      console.log('Event info:', parsedData.event_info)
+      console.log('Meeting rooms count:', parsedData.meeting_rooms?.length || 0)
+      console.log('Sleeping rooms count:', parsedData.sleeping_rooms?.length || 0)
       
       return NextResponse.json(parsedData)
     }
