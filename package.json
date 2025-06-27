@@ -1,6 +1,6 @@
 {
   "name": "event-document-parser",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Event Document Parser - Extract structured data from event PDFs and Word documents",
   "private": true,
   "scripts": {
@@ -16,6 +16,7 @@
     "axios": "^1.6.5",
     "formidable": "^3.5.1",
     "mammoth": "^1.6.0",
+    "pdf-parse": "^1.1.1",
     "groq-sdk": "^0.3.1",
     "react-dropzone": "^14.2.3",
     "react-tabs": "^6.0.2",
