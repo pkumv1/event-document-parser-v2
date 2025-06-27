@@ -4,7 +4,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
-    serverComponentsExternalPackages: ['mammoth']
+    serverComponentsExternalPackages: ['mammoth', 'pdf-parse']
   },
   api: {
     bodyParser: {
@@ -18,7 +18,13 @@ const nextConfig = {
         fs: false,
         path: false,
         crypto: false,
+        stream: false,
+        util: false,
+        buffer: false,
       };
+    } else {
+      // For server-side, ensure pdf-parse can access its dependencies
+      config.externals = [...(config.externals || []), 'canvas'];
     }
     return config;
   },
