@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import pdfParse from 'pdf-parse'
 import mammoth from 'mammoth'
 import { Groq } from 'groq-sdk'
 
 // Helper function to extract text from PDF
 async function extractPDFText(buffer) {
   try {
+    // Dynamic import to avoid build-time issues
+    const pdfParse = (await import('pdf-parse')).default
     const data = await pdfParse(buffer)
     return data.text
   } catch (error) {
